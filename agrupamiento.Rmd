@@ -1,0 +1,69 @@
+---
+title: "Agrupamiento"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Lectura de conjunto de datos
+```{r}
+accidentalidad = read.csv("./incidentes_medellin_con_fechas.csv", header = TRUE)
+```
+
+
+Adecuacion del conjunto de datos
+```{r}
+# Eliminar variables que no se usaran
+accidentalidad$X.1 = NULL
+accidentalidad$X = NULL
+accidentalidad$Y = NULL
+accidentalidad$OBJECTID = NULL
+accidentalidad$RADICADO = NULL
+accidentalidad$HORA = NULL
+accidentalidad$DIA = NULL
+accidentalidad$CBML = NULL
+accidentalidad$MES = NULL
+accidentalidad$PERIODO = NULL
+accidentalidad$DIRECCION = NULL
+accidentalidad$DIRECCION_ENC = NULL
+accidentalidad$X_MAGNAMED = NULL
+accidentalidad$Y_MAGNAMED = NULL
+accidentalidad$LONGITUD = NULL
+accidentalidad$LATITUD = NULL
+
+# Todos los festivos y fechas importantes en una misma variable
+accidentalidad["FECHA_IMPORTANTE"] = accidentalidad$puente_festivo + accidentalidad$puente_reyes + accidentalidad$semana_santa + accidentalidad$puente_semana_santa + accidentalidad$receso_mitad + accidentalidad$feria_flores + accidentalidad$receso_octubre + accidentalidad$vacaciones_final + accidentalidad$festivo_entre_semana + accidentalidad$no_festivo_importante
+
+accidentalidad["FECHA_IMPORTANTE"] = ifelse(accidentalidad["FECHA_IMPORTANTE"] > 0, 1, 0)
+
+accidentalidad$puente_festivo = NULL
+accidentalidad$puente_reyes = NULL
+accidentalidad$semana_santa = NULL
+accidentalidad$puente_semana_santa = NULL
+accidentalidad$receso_mitad = NULL
+accidentalidad$feria_flores = NULL
+accidentalidad$receso_octubre = NULL
+accidentalidad$vacaciones_final = NULL
+accidentalidad$festivo_entre_semana = NULL
+accidentalidad$no_festivo_importante = NULL
+```
+
+```{r}
+# Crear la variable accidentalidad, la cual corresponderá al numero de accidentes ocurridos durante ese día
+num_accidentes = c()
+
+for (i in 1:nrow(accidentalidad)) {
+  num_accidentes = append(num_accidentes, sum(as.character(accidentalidad$FECHA) == as.character(accidentalidad[i, ]$FECHA)))
+}
+accidentalidad['NUM_ACCIDENTES_DIA'] = num_accidentes
+accidentalidad = accidentalidad[complete.cases(accidentalidad), ]
+```
+
+```{r}
+set.seed(19112020)
+cat(length(unique(accidentalidad$BARRIO)))
+cluster = kmeans(accidentalidad, length(unique(accidentalidad$COMUNA)), nstart = 20)
+```

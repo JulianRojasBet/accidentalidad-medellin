@@ -7,9 +7,32 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+instalar tidyverse
+
+```{r}
+install.packages("tidyverse")
+```
+
+
+importar librerias
+
+```{r}
+library(dplyr)
+library(readr)
+library(lubridate)
+library(tidyr)
+
+```
+
 ## Importar datos
 
 Import Dataset -> From Text (readr)
+
+```{r}
+
+df <- read_csv("https://opendata.arcgis.com/datasets/505e89d2ade143a684d51b60236ba285_0.csv")
+
+```
 
 ## NA en las columnas de los diferentes data frames
 
@@ -179,6 +202,121 @@ zonas <- rbind(zonas, data.frame('BARRIO' = c("La Isla", "El Playón de los Comu
           "Pablo VI", "La Frontera", "La Francia", "Andlucía", "Villa del Socorro", 
           "Villa Niza", "Moscú No.1", "Santa Cruz", "La Rosa"), 'COMUNA' = 'Santa Cruz'))
 
+```
+
+conversion a factors de las variables categóricas
+```{r}
+df <- df %>% mutate_at(c("CLASE", "GRAVEDAD", "DISENO"), as.factor)
+```
+
+Verificaciones
+
+X y Y corresponden exactamente a longitud y latitud
+
+```{r}
+df %>% filter(!near(X, LONGITUD) | !near(Y, LATITUD)) %>% nrow
+```
+
+si el CBML es NA si y solo si lo son barrio/comuna es na
+
+```{r}
+df %>% filter(is.na(CBML) & (!is.na(BARRIO) | !is.na(COMUNA))) %>% nrow
+df %>% filter(!is.na(CBML) & (is.na(BARRIO) | is.na(COMUNA))) %>% nrow
+```
+
+barrio es na si y solo si comuna es na
+
+```{r}
+df %>% filter(is.na(BARRIO) & !is.na(COMUNA)) %>% nrow
+df %>% filter(!is.na(BARRIO) & is.na(COMUNA)) %>% nrow
+```
+
+
+No todos los que no tienen CBML tienen geocod "no ubicada"
+
+```{r}
+df %>% filter(is.na(CBML) & TIPO_GEOCOD != "No Ubicada") %>% nrow
+```
+
+No todos los que no tienen CBML tienen geocd "no ubicada"
+
+```{r}
+df %>% filter(is.na(CBML) & TIPO_GEOCOD == "No Ubicada") %>% nrow
+```
+si es no ubicada entonces no tiene cbml
+
+```{r}
+df %>% filter(TIPO_GEOCOD == "No Ubicada" & !is.na(CBML)) %>% nrow
+```
+todas las no ubicadas estan si y solo si en x = -75.70382
+
+```{r}
+df %>% filter(TIPO_GEOCOD == "No Ubicada" & !near(LONGITUD, -75.70382, 0.00001)) %>% nrow
+df %>% filter(TIPO_GEOCOD != "No Ubicada" & near(LONGITUD, -75.70382, 0.00001)) %>% nrow
+```
+
+
+eliminacion de columnas
+
+```{r}
+df <- df %>% select(-c(X,Y,RADICADO,DIA,PERIODO,DIRECCION_ENC,DIA_NOMBRE,MES,MES_NOMBRE,X_MAGNAMED,Y_MAGNAMED))
+```
+
+fecha
+
+```{r}
+df <- df %>% mutate_at(c("FECHA"),ymd_hms)
+```
+
+
+fechas especiales
+
+```{r}
+library(readxl)
+fechas_especiales <- read_excel("C:/Users/victo/Desktop/prueba_fechas_especiales.xlsx")
+
+```
+
+```{r}
+fechas_especiales[is.na(fechas_especiales)] <- 0
+```
+
+
+```{r}
+fechas_especiales <- fechas_especiales %>% mutate_at(c("FECHA"),ymd)
+```
+
+
+
+```{r}
+incidentes_medellin <- read.csv("C:/Users/victo/Downloads/incidentes_medellin.csv", encoding="UTF-8")
+```
+
+
+```{r}
+incidentes_medellin <- incidentes_medellin %>% mutate_at(c("FECHA"),ymd_hms)
+```
+
+```{r}
+incidentes_medellin_con_fechas <- incidentes_medellin %>% left_join(fechas_especiales)
+```
+
+```{r}
+incidentes_medellin_con_fechas <- incidentes_medellin_con_fechas %>% mutate_at(c("puente_festivo","puente_reyes","semana_santa","puente_semana_santa","receso_mitad","feria_flores","receso_octubre","vacaciones_final","festivo_entre_semana","no_festivo_importante"), replace_na, replace=0 )
+```
+
+```{r}
+summary(incidentes_medellin_con_fechas)
+```
+
+
+
+```{r}
+colSums(is.na(incidentes_medellin_con_fechas))
+```
+
+```{r}
+write.csv(incidentes_medellin_con_fechas,"C:\\Users\\victo\\Desktop\\incidentes_medellin_con_fechas.csv")
 ```
 
 

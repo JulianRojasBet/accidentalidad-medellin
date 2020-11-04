@@ -1,5 +1,8 @@
+library(shiny)
 library(shinydashboard)
 library(rintrojs)
+
+library(leaflet)
 
 
 # dropdown ----
@@ -77,6 +80,19 @@ sidebar <- dashboardSidebar(
         )
       )
     )
+  
+#box map group
+  map_goup_box <- box(title="Mapa de los barrios de Medellin",
+                      status = "success", solidHeader = TRUE, width = 12,
+                        fluidRow(
+                          column(12,offset = 0,
+                                 div(style="width: 95%;margin-left: auto; margin-right: auto;",
+                          leafletOutput("map_group"),
+                          verbatimTextOutput("click_info"),
+                                 )
+                          )
+                        )
+                      )
 
  
 # body ----
@@ -84,9 +100,9 @@ body <- dashboardBody(
   tabItems(
     tabItem(tabName = "visualization", fluidRow(visualization_box)),
     tabItem(tabName = "prediction", fluidRow()),
-    tabItem(tabName = "grouping", fluidRow())
+    tabItem(tabName = "grouping", fluidRow(map_goup_box))
   )
 )
-
-# ui.R ----
-ui <- dashboardPage(header, sidebar, body, skin = "green")
+  
+# ui element
+dashboardPage(header, sidebar, body, skin = "green")

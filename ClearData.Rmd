@@ -1,0 +1,322 @@
+---
+title: "Limpieza de datos"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+instalar tidyverse
+
+```{r}
+install.packages("tidyverse")
+```
+
+
+importar librerias
+
+```{r}
+library(dplyr)
+library(readr)
+library(lubridate)
+library(tidyr)
+
+```
+
+## Importar datos
+
+Import Dataset -> From Text (readr)
+
+```{r}
+
+df <- read_csv("https://opendata.arcgis.com/datasets/505e89d2ade143a684d51b60236ba285_0.csv")
+
+```
+
+## NA en las columnas de los diferentes data frames
+
+```{r}
+na_2014 <- colSums(is.na(Incidentes_georreferenciados_2014))
+na_2015 <- colSums(is.na(Incidentes_georreferenciados_2015))
+na_2016 <- colSums(is.na(Incidentes_georreferenciados_2016))
+na_2017 <- colSums(is.na(Incidentes_georreferenciados_2017))
+na_2018 <- colSums(is.na(Incidentes_georreferenciados_2018))
+```
+
+### 2014
+
+```{r}
+na_2014
+```
+
+Las variables DIRECCION_ENC, CBML, BARRIO, COMUNA, DISENO y MES_NOMBRE presentan datos incompletos para algunas obervaciones
+
+### 2015
+
+```{r}
+na_2015
+```
+
+Las variables CLASE, DIRECCION_ENC, CBML, BARRIO, COMUNA, DISENO y MES_NOMBRE presentan datos incompletos para algunas obervaciones
+
+### 2016
+
+```{r}
+na_2016
+```
+
+Las variables DIRECCION_ENC, CBML, BARRIO, COMUNA, DISENO y MES_NOMBRE presentan datos incompletos para algunas obervaciones
+
+### 2017
+
+```{r}
+na_2017
+```
+
+Las variables RADICADO, DIRECCION_ENC, CBML, BARRIO, COMUNA, DISENO y MES_NOMBRE presentan datos incompletos para algunas obervaciones
+
+### 2018
+
+```{r}
+na_2018
+```
+
+Las variables RADICADO, DIRECCION_ENC, CBML, BARRIO, COMUNA, DISENO y MES_NOMBRE presentan datos incompletos para algunas obervaciones
+
+En todos los conjuntos de datos se tiene que para las variables DIRECCION_ENC, CBML, BARRIO, COMUNA, DISENO y MES_NOMBRE hay datos faltanes. Además, observe que para la columna de MES_NOMBRE no hay ningun dato.
+
+
+## Agregar datos para la columna MES_NOMBRE
+
+Note que el conjunto de datos tiene una variable llamada 'MES', esta es numérica y representa el mes de cada accidente. Con esta columna se obtiene el nombre del mes.
+
+```{r}
+meses <- c('Enero', 'Febero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+           'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre')
+
+Incidentes_georreferenciados_2014$MES_NOMBRE <-   meses[as.integer(Incidentes_georreferenciados_2014$MES)]
+
+Incidentes_georreferenciados_2015$MES_NOMBRE <-   meses[as.integer(Incidentes_georreferenciados_2015$MES)]
+
+Incidentes_georreferenciados_2016$MES_NOMBRE <-   meses[as.integer(Incidentes_georreferenciados_2016$MES)]
+
+Incidentes_georreferenciados_2017$MES_NOMBRE <-   meses[as.integer(Incidentes_georreferenciados_2017$MES)]
+
+Incidentes_georreferenciados_2018$MES_NOMBRE <-   meses[as.integer(Incidentes_georreferenciados_2018$MES)]
+```
+
+
+## Barrios, comunas y CBML
+
+Note que en los diferentes conjuntos, la cantidad de datos que faltan en estas columnas es igual (con excepción de los años 2016 2017).
+
+### Comunas
+
+En medellín existen 16 comunas y 5 corregimientos, es decir que para este dato se disponen de 21 opciones. Por supuesto, podrían aparecer 22 contando los NA.
+
+#### 2014
+
+```{r}
+unique(Incidentes_georreferenciados_2014$COMUNA)
+```
+
+Como se puede ver, los datos contienen 24 datos, de los cuales se contempla el NA, y 3 valores extraños: In, AU, SN.
+
+#### 2015
+
+```{r}
+unique(Incidentes_georreferenciados_2014$COMUNA)
+```
+
+se presenta el mismo caso anterior.
+
+#### 2016
+
+```{r}
+unique(Incidentes_georreferenciados_2016$COMUNA)
+```
+
+En este caso se tiene que se agrega un valor más ("0") que es ajeno a las posibles opciones
+
+#### 2017
+
+```{r}
+unique(Incidentes_georreferenciados_2017$COMUNA)
+```
+
+Nótese que en este caso, se introdujeron nombres de barrios en lo que debería ser los nombres de las comunas asociadas.
+
+#### 2018
+
+```{r}
+unique(Incidentes_georreferenciados_2018$COMUNA)
+```
+
+En este caso solo se tienen dos valores extraños.
+
+En resumen, se tiene que los nombres de las diferentes comunas están estandariazados, se tiene el valor NA, hay 4 valores extraños (AU, In, SN, 0). Y para el año 2017 se introdujeron barrios con comunas, por lo que hay que hacer una reparación para este año.
+
+#### Reparación del carácter 0
+
+Nóte que este valor extraño solo aparece en la base de datos del año 2016. Lo cambiaremos por un valor NA
+
+```{r}
+Incidentes_georreferenciados_2016[which(Incidentes_georreferenciados_2016$COMUNA == "0"), ]
+```
+
+Note que solo un dato (RADICADO = 15286797) tiene este valor en comuna, y además lo tiene en barrio. Cambiemos estos valores a NA.
+
+```{r}
+Incidentes_georreferenciados_2016$COMUNA[Incidentes_georreferenciados_2016$COMUNA == "0"] <- NA
+Incidentes_georreferenciados_2016$BARRIO[Incidentes_georreferenciados_2016$BARRIO == "0"] <- NA
+```
+
+comprobemos
+
+```{r}
+Incidentes_georreferenciados_2016[which(Incidentes_georreferenciados_2016$RADICADO == 1528697), ]
+```
+
+De momento, se tiene que los datos de 2014, 2015, 2016 y 2018 tiene los mismos valores extraños.
+
+Miremos que podemos hacer para el año 2017.
+
+Hagamos un *Data Frame* con los barrios de cada comuna.
+
+#### Zonas
+
+```{r}
+zonas <- data.frame(matrix(ncol = 2, nrow = 0))
+namesCols <- c('COMUNA', 'BARRIO')
+colnames(zonas) <- namesCols
+
+# Comuna 1: Popular
+zonas <- rbind(zonas, data.frame('BARRIO' = c("Santo Domingo Savio No. 1", 
+  "Santo Domingo Savio No. 2", "Popular", "Granizal", "Moscú No. 2", "Villa de Guadalupe",
+  "San Pablo", "El Compromiso", "Aldea Pablo VI", "La Esperanza No. 2", "Avanzada",
+  "Carpinelo"), 'COMUNA' = 'Popular'))
+
+# Comuna 2: Santa Cruz
+zonas <- rbind(zonas, data.frame('BARRIO' = c("La Isla", "El Playón de los Comuneros", 
+          "Pablo VI", "La Frontera", "La Francia", "Andlucía", "Villa del Socorro", 
+          "Villa Niza", "Moscú No.1", "Santa Cruz", "La Rosa"), 'COMUNA' = 'Santa Cruz'))
+
+```
+
+conversion a factors de las variables categóricas
+```{r}
+df <- df %>% mutate_at(c("CLASE", "GRAVEDAD", "DISENO"), as.factor)
+```
+
+Verificaciones
+
+X y Y corresponden exactamente a longitud y latitud
+
+```{r}
+df %>% filter(!near(X, LONGITUD) | !near(Y, LATITUD)) %>% nrow
+```
+
+si el CBML es NA si y solo si lo son barrio/comuna es na
+
+```{r}
+df %>% filter(is.na(CBML) & (!is.na(BARRIO) | !is.na(COMUNA))) %>% nrow
+df %>% filter(!is.na(CBML) & (is.na(BARRIO) | is.na(COMUNA))) %>% nrow
+```
+
+barrio es na si y solo si comuna es na
+
+```{r}
+df %>% filter(is.na(BARRIO) & !is.na(COMUNA)) %>% nrow
+df %>% filter(!is.na(BARRIO) & is.na(COMUNA)) %>% nrow
+```
+
+
+No todos los que no tienen CBML tienen geocod "no ubicada"
+
+```{r}
+df %>% filter(is.na(CBML) & TIPO_GEOCOD != "No Ubicada") %>% nrow
+```
+
+No todos los que no tienen CBML tienen geocd "no ubicada"
+
+```{r}
+df %>% filter(is.na(CBML) & TIPO_GEOCOD == "No Ubicada") %>% nrow
+```
+si es no ubicada entonces no tiene cbml
+
+```{r}
+df %>% filter(TIPO_GEOCOD == "No Ubicada" & !is.na(CBML)) %>% nrow
+```
+todas las no ubicadas estan si y solo si en x = -75.70382
+
+```{r}
+df %>% filter(TIPO_GEOCOD == "No Ubicada" & !near(LONGITUD, -75.70382, 0.00001)) %>% nrow
+df %>% filter(TIPO_GEOCOD != "No Ubicada" & near(LONGITUD, -75.70382, 0.00001)) %>% nrow
+```
+
+
+eliminacion de columnas
+
+```{r}
+df <- df %>% select(-c(X,Y,RADICADO,DIA,PERIODO,DIRECCION_ENC,DIA_NOMBRE,MES,MES_NOMBRE,X_MAGNAMED,Y_MAGNAMED))
+```
+
+fecha
+
+```{r}
+df <- df %>% mutate_at(c("FECHA"),ymd_hms)
+```
+
+
+fechas especiales
+
+```{r}
+library(readxl)
+fechas_especiales <- read_excel("C:/Users/victo/Desktop/prueba_fechas_especiales.xlsx")
+
+```
+
+```{r}
+fechas_especiales[is.na(fechas_especiales)] <- 0
+```
+
+
+```{r}
+fechas_especiales <- fechas_especiales %>% mutate_at(c("FECHA"),ymd)
+```
+
+
+
+```{r}
+incidentes_medellin <- read.csv("C:/Users/victo/Downloads/incidentes_medellin.csv", encoding="UTF-8")
+```
+
+
+```{r}
+incidentes_medellin <- incidentes_medellin %>% mutate_at(c("FECHA"),ymd_hms)
+```
+
+```{r}
+incidentes_medellin_con_fechas <- incidentes_medellin %>% left_join(fechas_especiales)
+```
+
+```{r}
+incidentes_medellin_con_fechas <- incidentes_medellin_con_fechas %>% mutate_at(c("puente_festivo","puente_reyes","semana_santa","puente_semana_santa","receso_mitad","feria_flores","receso_octubre","vacaciones_final","festivo_entre_semana","no_festivo_importante"), replace_na, replace=0 )
+```
+
+```{r}
+summary(incidentes_medellin_con_fechas)
+```
+
+
+
+```{r}
+colSums(is.na(incidentes_medellin_con_fechas))
+```
+
+```{r}
+write.csv(incidentes_medellin_con_fechas,"C:\\Users\\victo\\Desktop\\incidentes_medellin_con_fechas.csv")
+```
+
+

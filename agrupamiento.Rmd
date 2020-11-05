@@ -5,6 +5,9 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 library(ggplot2)
+library(dplyr)
+library(vegan)
+
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -49,21 +52,69 @@ accidentalidad$receso_octubre = NULL
 accidentalidad$vacaciones_final = NULL
 accidentalidad$festivo_entre_semana = NULL
 accidentalidad$no_festivo_importante = NULL
-```
 
-```{r}
-# Crear la variable accidentalidad, la cual corresponderá al numero de accidentes ocurridos durante ese día
-num_accidentes = c()
+# Crear la variable accidentalidad, la cual corresponderá al numero de accidentes ocurridos durante ese día en cada barrio
 
-for (i in 1:nrow(accidentalidad)) {
-  num_accidentes = append(num_accidentes, sum(as.character(accidentalidad$FECHA) == as.character(accidentalidad[i, ]$FECHA)))
+accidentalidad$NUM_ACCIDENTES = ave(accidentalidad$FECHA, accidentalidad$BARRIO, FUN = length)
+barrios = accidentalidad %>% distinct(COMUNA, BARRIO, .keep_all = TRUE)
+
+heridos = c()
+for (i in 1:nrow(barrios)) {
+  row = barrios[i, ]
+  heridos = c(heridos, nrow(accidentalidad[accidentalidad$GRAVEDAD=="HERIDO" & accidentalidad$BARRIO==row$BARRIO,]))
 }
-accidentalidad['NUM_ACCIDENTES_DIA'] = num_accidentes
-accidentalidad = accidentalidad[complete.cases(accidentalidad), ]
+barrios$HERIDOS = heridos
+
+atropellos = c()
+for (i in 1:nrow(barrios)) {
+  row = barrios[i, ]
+  atropellos = c(atropellos, nrow(accidentalidad[accidentalidad$CLASE=="Atropello" & accidentalidad$BARRIO==row$BARRIO,]))
+}
+barrios$ATROPELLOS = atropellos
+
+barrios$FECHA = NULL
+barrios$CLASE = NULL
+barrios$TIPO_GEOCOD = NULL
+barrios$GRAVEDAD = NULL
+barrios$DISENO = NULL
+barrios$DIA_NOMBRE = NULL
+barrios$MES_NOMBRE = NULL
+barrios$FECHA_IMPORTANTE = NULL
 ```
 
 ```{r}
 set.seed(19112020)
-cat(length(unique(accidentalidad$BARRIO)))
-cluster = kmeans(accidentalidad, length(unique(accidentalidad$COMUNA)), nstart = 20)
+barrios_cluster = kmeans(barrios[, 3:5], 3)
+```
+
+```{r}
+medio = barrios[factor(barrios_cluster$cluster) == "1", ]
+medio
+```
+
+```{r}
+bajo = barrios[factor(barrios_cluster$cluster) == "2", ]
+bajo
+```
+
+```{r}
+alto = barrios[factor(barrios_cluster$cluster) == "3", ]
+alto
+```
+
+```{r}
+riesgos = c()
+for (i in 1:nrow(accidentalidad)) {
+  b = nrow(bajo[bajo$BARRIO == accidentalidad[i,]$BARRIO,])
+  m = nrow(medio[medio$BARRIO == accidentalidad[i,]$BARRIO,])
+  a = nrow(alto[alto$BARRIO == accidentalidad[i,]$BARRIO,])
+  if (b > 0) {
+    riesgos = c(riesgos, "Bajo")
+  } else if (m > 0) {
+    riesgos = c(riesgos, "Medio")
+  } else {
+    riesgos = c(riesgos, "Alto")
+  }
+}
+accidentalidad$RIESGO =  riesgos
 ```

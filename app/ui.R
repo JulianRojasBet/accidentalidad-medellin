@@ -87,7 +87,7 @@ sidebar <- dashboardSidebar(
                         fluidRow(
                           column(12,offset = 0,
                                  div(style="width: 95%;margin-left: auto; margin-right: auto;",
-                          leafletOutput("map_group"),
+                          leafletOutput("map_group",height = "75vh"),
                           verbatimTextOutput("click_info"),
                                  )
                           )

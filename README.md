@@ -8,3 +8,4 @@ Técnicas en Aprendizaje Estadístico
 * Jhojan Beltrán
 * Julian Rojas
 * Juan David Ruiz
+* Victor Daniel Cataño

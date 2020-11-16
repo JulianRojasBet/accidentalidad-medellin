@@ -1,0 +1,153 @@
+---
+title: "Accidentalidad en Medellín"
+author: "Valentina Serrato Henao"
+date: "3/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Primero se carga el archivo previamente comprimiod a un .RData
+```{r}
+load(file.choose())
+```
+
+```{r}
+#librerias necesarias
+require(mixlm)
+```
+
+
+Se divide el conjunto de datos en datos de entrenamiento(2015-2017) y datos de prueba (2018)
+```{r}
+## Seleccion del conjunto de entrenamiento y el conjunto de prueba
+train<-accidentalidad[-which(accidentalidad$PERIODO=="2018"),]
+test<-accidentalidad[which(accidentalidad$PERIODO=="2018"),]
+```
+
+Se plantea un modelo de regresión  lineal múltiple que permita predecir el *número de accidentes* usando como predictoras el dia, el mes, el nombre del día, la comúna, el riesgo de accidentalidad del barrio, y un conjunto de variables dummy que determina si es o no un día importante.
+```{r}
+#Modelo de regresión lineal multiple para el número de accidentes
+NumAccidentes_test<-test$`Numero de accidentes`
+modelo1<-lm(`Numero de accidentes`~MES+DIA+DIA_NOMBRE+COMUNA+puente_festivo+puente_reyes+semana_santa+feria_flores+puente_semana_santa+festivo_entre_semana+no_festivo_importante+Riesgo, data=train)
+a1<-predict(modelo1, test)
+
+#MSE del conjunto de entrenamiento
+msetrain<-mean((train$`Numero de accidentes`- predict(modelo1))^2)
+
+#MSE del conjunto de prueba
+msetest<- mean((NumAccidentes_test - a1)^2)
+
+#variacion de los MSE
+variacion_mse<-(msetest/msetrain)-1
+msetest
+msetrain
+variacion_mse
+
+summary(modelo1)
+```
+
+Podemos ver que la variación de los MSE de prueba y entrenamiento es del 15%, también se ve que tenemos un $R^2=0.4114$ y $R^2_{adj}=0.4108$, por lo tanto el modelo sí explica en un 41% la variabilidad del número de accidentes.
+
+Se utilizará el método forward para depurar un poco el modelo y encontrar uno más parsimonioso.
+
+```{r}
+forward(modelo1)
+```
+
+
+Se ajusta un modelo de regresión lineal múltiple para el número de *accidentes con solo daños*, usando como uno de los predictores el número de accidentes que resulta del modelo anterior, también el dia, el mes, el nombre del día, la comúna, el riesgo de accidentalidad del barrio, y un conjunto de variables dummy que determina si es o no un día importante.
+```{r}
+#Modelo de regresión lineal multiple para el número de accidentes con solo daños
+NumAccidentesdaños_test<-test$`Accidente con solo daños`
+modelo2<-lm(`Accidente con solo daños`~MES+DIA+DIA_NOMBRE+COMUNA+puente_festivo+puente_reyes+semana_santa+feria_flores+puente_semana_santa+festivo_entre_semana+no_festivo_importante+Riesgo+`Numero de accidentes`, data=train)
+a2<-predict(modelo2, test)
+
+#MSE del conjunto de entrenamiento
+msetrain2<-mean((train$`Accidente con solo daños`- predict(modelo2))^2)
+
+#MSE del conjunto de prueba
+msetest2<- mean((NumAccidentesdaños_test - a2)^2)
+
+#variacion de los MSE
+variacion_mse2<-(msetest2/msetrain2)-1
+msetest2
+msetrain2
+variacion_mse2
+
+summary(modelo2)
+```
+Podemos ver que la variación de los MSE de prueba y entrenamiento es del 2% un valor bajo, también se ve que tenemos un $R^2=0.8354$ y $R^2_{adj}=0.8352$, al ser valores casi iguales entonces se puede concluir que el modelo sí explica en un 84% la variabilidad del número de accidentes con solo daños.
+
+
+Se utilizará el método forward para depurar un poco el modelo y encontrar uno más parsimonioso.
+
+
+```{r}
+forward(modelo2)
+```
+
+
+Se ajusta un modelo de regresión lineal múltiple para el número de *accidentes con heridos*, usando como uno de los predictores el número de accidentes que resulta del primer modelo, también el dia, el mes, el nombre del día, la comúna, el riesgo de accidentalidad del barrio, y un conjunto de variables dummy que determina si es o no un día importante.
+
+```{r}
+#Modelo de regresión lineal multiple para el número de accidentes con heridos
+NumAccidentesheridos_test<-test$`Accidentes con Heridos`
+modelo3<-lm(`Accidentes con Heridos`~MES+DIA+DIA_NOMBRE+COMUNA+puente_festivo+puente_reyes+semana_santa+feria_flores+puente_semana_santa+festivo_entre_semana+no_festivo_importante+Riesgo+`Numero de accidentes`, data=train)
+a3<-predict(modelo3, test)
+
+#MSE del conjunto de entrenamiento
+msetrain3<-mean((train$`Accidentes con Heridos`- predict(modelo3))^2)
+
+#MSE del conjunto de prueba
+msetest3<- mean((NumAccidentesheridos_test - a3)^2)
+
+#variacion de los MSE
+variacion_mse3<-(msetrain3/msetest3)-1
+msetest3
+msetrain3
+variacion_mse3
+
+summary(modelo3)
+```
+Podemos ver que la variación de los MSE de prueba y entrenamiento es del 2% un valor bajo, también se ve que tenemos un $R^2=0.7803$ y $R^2_{adj}=0.78$, al ser valores casi iguales entonces se puede concluir que el modelo sí explica en un 78% la variabilidad del número de accidentes con heridos.
+
+
+Se utilizará el método forward para depurar un poco el modelo y encontrar uno más parsimonioso.
+
+
+```{r}
+forward(modelo3)
+```
+
+Se ajusta un modelo de regresión lineal múltiple para el número de *accidentes con muertos*, usando como uno de los predictores el número de accidentes que resulta del primer modelo, también el dia, el mes, el nombre del día, la comúna, el riesgo de accidentalidad del barrio, y un conjunto de variables dummy que determina si es o no un día importante.
+```{r}
+#Modelo de regresión lineal multiple para el número de accidentes con muertos
+NumAccidentesmuertos_test<-test$`Accidente de muertos`
+modelo4<-lm(`Accidente de muertos`~MES+DIA+DIA_NOMBRE+COMUNA+puente_festivo+puente_reyes+semana_santa+feria_flores+puente_semana_santa+festivo_entre_semana+no_festivo_importante+Riesgo+`Numero de accidentes`, data=train)
+a4<-predict(modelo4, test)
+
+#MSE del conjunto de entrenamiento
+msetrain4<-mean((train$`Accidente de muertos`- predict(modelo4))^2)
+
+#MSE del conjunto de prueba
+msetest4<- mean((NumAccidentesmuertos_test - a4)^2)
+
+#variacion de los MSE
+variacion_mse4<-(msetrain4/msetest4)-1
+msetest4
+msetrain4
+variacion_mse4
+
+summary(modelo4)
+```
+
+Podemos ver que la variación de los MSE de prueba y entrenamiento es del 40%, también se ve que tenemos un $R^2=0.03$, esto indica que el modelo no es adecuado por lo cual se buscara mejorar la predicción con el uso de otros métodos
+
+
+
+
+
+

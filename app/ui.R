@@ -69,7 +69,7 @@ sidebar <- dashboardSidebar(
       ),
      fluidRow(
        column(12, offset = 0,
-          div(style="text-align: center; width: 80%; display: block; 
+          div(style="text-align: center; width: 95%; display: block; 
             margin-left: auto; margin-right: auto; margin-top: 30px;",
             introBox(
               DT::dataTableOutput("data"),

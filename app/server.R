@@ -1,5 +1,6 @@
 library(shiny)
 library(dplyr)
+library(DT)
 
 #map
 library(leaflet)
@@ -9,6 +10,16 @@ library(leaflet.extras)
 # load data
 barrios <- paste0(readLines("data/Barrio_Vereda.json",encoding="UTF-8",warn = FALSE), collapse = "")
 data_accidentes <- read.csv(file = "data/incidentes_medellin.csv", fileEncoding = "utf-8");
+resumen_accidentes <- read.csv(file = "data/Resumen-accidentalidad.csv", sep = ";")
+
+# Add date complete to data
+resumen_accidentes$FECHA <- (ISOdate(resumen_accidentes$PERIODO, resumen_accidentes$MES, 
+                                     resumen_accidentes$DIA))
+
+resumen_accidentes$Es.fecha.importante <- as.factor(ifelse(resumen_accidentes$Es.fecha.importante 
+                                                           == 1, 'Sí', 'No'))
+
+resumen_accidentes$Riesgo <- as.factor(resumen_accidentes$Riesgo)
 
 function(input, output, session) {
   
@@ -19,18 +30,27 @@ function(input, output, session) {
     footer = NULL
   ))
   
-  
-  
   # Apply filter to visualization
   createTable <- eventReactive(input$filter, {
-    dateStart <- format(as.Date(input$dates[1], origin = "1970-01-01"), "%Y/%m/%d")
-    dateFinish <- format(as.Date(input$dates[2] + 1, origin = "1970-01-01"), "%Y/%m/%d")
-    data <- data_accidentes %>% 
-      filter(FECHA >= dateStart & FECHA <= dateFinish) %>% 
-      select(BARRIO, COMUNA, FECHA, LATITUD, LONGITUD, GRAVEDAD)
+    dateStart <- format(as.Date(input$dates[1], origin = "1970-01-01"), "%Y-%m-%d")
+    dateFinish <- format(as.Date(input$dates[2] + 1, origin = "1970-01-01"), "%Y-%m-%d")
+    data <- resumen_accidentes %>% 
+      filter(FECHA >= dateStart & FECHA <= dateFinish) %>%
+      select("PERIODO", "MES", "DIA", "COMUNA", "Riesgo", "Es.fecha.importante",
+             "Numero.de.accidentes", "Accidentes.con.Heridos", "Accidentes.con.solo.daños",
+             "Accidentes.con.muertos")
+    
+    sketch <- htmltools::withTags(
+      table(
+        tableHeader(c("Año", "Mes", "Día", "Comuna", "Riesgo", "Fecha importante", 
+                      "Número accidentes",  "Accidentes con heridos", "Accidentes con solo daños", 
+                      "Accidentes con muertos")),
+        tableFooter(c("Subtotal","","","","","",0,0,0,0))
+      ))
     
     DT::datatable(
       data,
+      container = sketch,
       extensions = "Scroller",
       filter = "top", options = list(
         deferRender = TRUE,
@@ -40,12 +60,37 @@ function(input, output, session) {
         sDom  = '<"top">lrt<"bottom">ip',
         language = list(
           url = 'https://cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json'
-        )
+        ),
+        columnDefs = list(list(className = 'dt-center', targets = "_all")),
+        footerCallback = JS(
+          "function( tfoot, data, start, end, display ) {",
+          "var api = this.api(), data;",
+          "$( api.column(6).footer()).html(",
+          "api.column(6).data().reduce( function ( a, b ) {",
+          "return a + b;",
+          "} )",
+          ");",
+          "$( api.column(7).footer()).html(",
+          "api.column(7).data().reduce( function ( a, b ) {",
+          "return a + b;",
+          "} )",
+          ");",
+          "$( api.column(8).footer()).html(",
+          "api.column(8).data().reduce( function ( a, b ) {",
+          "return a + b;",
+          "} )",
+          ");",
+          "$( api.column(9).footer()).html(",
+          "api.column(9).data().reduce( function ( a, b ) {",
+          "return a + b;",
+          "} )",
+          ");",
+          "}")
       ),
-      rownames = FALSE,
-      colnames = c("Barrio", "Comuna", "Fecha", "Latitud", "Longitud", "Gravedad")
+      rownames = FALSE
     )
   })
+  
   
   output$data <- DT::renderDataTable({
     createTable()

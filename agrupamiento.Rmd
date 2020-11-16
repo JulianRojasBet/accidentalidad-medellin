@@ -5,6 +5,10 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 library(ggplot2)
+library(dplyr)
+library(vegan)
+library(plotly)
+
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -13,57 +17,116 @@ Lectura de conjunto de datos
 accidentalidad = read.csv("./incidentes_medellin_con_fechas.csv", header = TRUE)
 ```
 
-
-Adecuacion del conjunto de datos
+Con el fin de aplicar la tecnica de agrupamiento K-means para agrupar los barrios de Medellin con riesgos de accidentalidad, alto, medio y bajo, crearemos un nuevo conjunto de datos con las variables $BARRIO$, $COMUNA$ y ademas, calcularemos variables cuantitativas basandonos en los datos ya existentes de la accidentalidad en Medellin.
 ```{r}
-# Eliminar variables que no se usaran
-accidentalidad$X.1 = NULL
-accidentalidad$X = NULL
-accidentalidad$Y = NULL
-accidentalidad$OBJECTID = NULL
-accidentalidad$RADICADO = NULL
-accidentalidad$HORA = NULL
-accidentalidad$DIA = NULL
-accidentalidad$CBML = NULL
-accidentalidad$MES = NULL
-accidentalidad$PERIODO = NULL
-accidentalidad$DIRECCION = NULL
-accidentalidad$DIRECCION_ENC = NULL
-accidentalidad$X_MAGNAMED = NULL
-accidentalidad$Y_MAGNAMED = NULL
-accidentalidad$LONGITUD = NULL
-accidentalidad$LATITUD = NULL
+barrios = accidentalidad %>% distinct(COMUNA, BARRIO)
+#barrios$X.1 = NULL
+#barrios$X = NULL
+#barrios$Y = NULL
+#barrios$OBJECTID = NULL
+#barrios$RADICADO = NULL
+#barrios$HORA = NULL
+#barrios$DIA = NULL
+#barrios$CBML = NULL
+#barrios$MES = NULL
+#barrios$PERIODO = NULL
+#barrios$DIRECCION = NULL
+#barrios$DIRECCION_ENC = NULL
+#barrios$X_MAGNAMED = NULL
+#barrios$Y_MAGNAMED = NULL
+#barrios$LONGITUD = NULL
+#barrios$LATITUD = NULL
+#barrios$puente_festivo = NULL
+#barrios$puente_reyes = NULL
+#barrios$semana_santa = NULL
+#barrios$puente_semana_santa = NULL
+#barrios$receso_mitad = NULL
+#barrios$feria_flores = NULL
+#barrios$receso_octubre = NULL
+#barrios$vacaciones_final = NULL
+#barrios$festivo_entre_semana = NULL
+#barrios$no_festivo_importante = NULL
+#barrios$FECHA = NULL
+#barrios$CLASE = NULL
+#barrios$TIPO_GEOCOD = NULL
+#barrios$GRAVEDAD = NULL
+#barrios$DISENO = NULL
+#barrios$DIA_NOMBRE = NULL
+#barrios$MES_NOMBRE = NULL
 
-# Todos los festivos y fechas importantes en una misma variable
-accidentalidad["FECHA_IMPORTANTE"] = accidentalidad$puente_festivo + accidentalidad$puente_reyes + accidentalidad$semana_santa + accidentalidad$puente_semana_santa + accidentalidad$receso_mitad + accidentalidad$feria_flores + accidentalidad$receso_octubre + accidentalidad$vacaciones_final + accidentalidad$festivo_entre_semana + accidentalidad$no_festivo_importante
+# NUM_ACCIDENTES, numero de accidentes registrados por cada barrio
+accidentalidad$NUM_ACCIDENTES = ave(accidentalidad$FECHA, accidentalidad$BARRIO, FUN = length)
+barrios$NUM_ACCIDENTES = as.integer((accidentalidad %>% distinct(COMUNA, BARRIO, .keep_all = TRUE))$NUM_ACCIDENTES)
 
-accidentalidad["FECHA_IMPORTANTE"] = ifelse(accidentalidad["FECHA_IMPORTANTE"] > 0, 1, 0)
-
-accidentalidad$puente_festivo = NULL
-accidentalidad$puente_reyes = NULL
-accidentalidad$semana_santa = NULL
-accidentalidad$puente_semana_santa = NULL
-accidentalidad$receso_mitad = NULL
-accidentalidad$feria_flores = NULL
-accidentalidad$receso_octubre = NULL
-accidentalidad$vacaciones_final = NULL
-accidentalidad$festivo_entre_semana = NULL
-accidentalidad$no_festivo_importante = NULL
-```
-
-```{r}
-# Crear la variable accidentalidad, la cual corresponderá al numero de accidentes ocurridos durante ese día
-num_accidentes = c()
-
-for (i in 1:nrow(accidentalidad)) {
-  num_accidentes = append(num_accidentes, sum(as.character(accidentalidad$FECHA) == as.character(accidentalidad[i, ]$FECHA)))
+# HERIDOS, numero de accidentes registrados en los cuales, se ha visto implicado un herido
+heridos = c()
+for (i in 1:nrow(barrios)) {
+  row = barrios[i, ]
+  heridos = c(heridos, nrow(accidentalidad[accidentalidad$GRAVEDAD=="HERIDO" & accidentalidad$BARRIO==row$BARRIO,]))
 }
-accidentalidad['NUM_ACCIDENTES_DIA'] = num_accidentes
-accidentalidad = accidentalidad[complete.cases(accidentalidad), ]
-```
+barrios$HERIDOS = heridos
 
+# ATROPELLOS, numero de accidentes de clase atropello registrados
+atropellos = c()
+for (i in 1:nrow(barrios)) {
+  row = barrios[i, ]
+  atropellos = c(atropellos, nrow(accidentalidad[accidentalidad$CLASE=="Atropello" & accidentalidad$BARRIO==row$BARRIO,]))
+}
+barrios$ATROPELLOS = atropellos
+summary(barrios)
+```
+Como vemos en el resumen anterior, nuestor conjunto de datos consta de 356 observaciones, donde cada una es un barrio diferente, ademas de esto, tenemos el numero de accidentes registrados para cada barrio, el numero de heridos en un accidente para cada barrio y el numero de atropellos registrados en cada barrio.
+
+Utilicemos estas variables categoricas creadas para agrupar los barrios de Medellin segun su nivel de accidentalidad. Para esto, le diremos al algoritmo que encuentre 3 clusters, correspondientes a accidentalidad alta, media y baja. A su vez, con el parametro $nstart = 20$ se repetira el algoritmo con 20 diferentes conjuntos randoms, lo que nos arrojara el mejor de los modelos con 3 cluster, en otras palabras, el minimo global y no uno de los minimos locales.
 ```{r}
 set.seed(19112020)
-cat(length(unique(accidentalidad$BARRIO)))
-cluster = kmeans(accidentalidad, length(unique(accidentalidad$COMUNA)), nstart = 20)
+km.out = kmeans(barrios[, 3:5], 3, nstart = 20)
+km.out
+```
+Aca vemos un resumen de nuestro modelo, los centroides de cada clase y el etiquetado de cada observacion segun el cluster al que pertenece.
+
+```{r}
+medio = barrios[factor(km.out$cluster) == "1", ]
+medio
+```
+
+```{r}
+bajo = barrios[factor(km.out$cluster) == "2", ]
+bajo
+```
+
+```{r}
+alto = barrios[factor(km.out$cluster) == "3", ]
+alto
+```
+Veamos como se ven nuestros clusters en un grafico 3D
+```{r}
+barrios$RIESGO = km.out$cluster
+barrios$RIESGO[barrios$RIESGO == "1"] = "Medio"
+barrios$RIESGO[barrios$RIESGO == "2"] = "Bajo"
+barrios$RIESGO[barrios$RIESGO == "3"] = "Alto"
+
+fig = plot_ly(barrios, x = ~NUM_ACCIDENTES, y = ~HERIDOS, z = ~ATROPELLOS,  color = ~RIESGO)
+fig = fig %>% add_markers()
+fig <- fig %>% layout(scene = list(xaxis = list(title = '# Accidentes'),
+                     yaxis = list(title = '# Heridos'),
+                     zaxis = list(title = '# Atropellos')))
+fig
+```
+
+```{r}
+riesgos = c()
+for (i in 1:nrow(accidentalidad)) {
+  b = nrow(bajo[bajo$BARRIO == accidentalidad[i,]$BARRIO,])
+  m = nrow(medio[medio$BARRIO == accidentalidad[i,]$BARRIO,])
+  a = nrow(alto[alto$BARRIO == accidentalidad[i,]$BARRIO,])
+  if (b > 0) {
+    riesgos = c(riesgos, "Bajo")
+  } else if (m > 0) {
+    riesgos = c(riesgos, "Medio")
+  } else {
+    riesgos = c(riesgos, "Alto")
+  }
+}
+accidentalidad$RIESGO = as.factor(riesgos)
 ```

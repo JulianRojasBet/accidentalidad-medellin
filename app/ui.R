@@ -82,7 +82,7 @@ sidebar <- dashboardSidebar(
     )
   
 #box map group
-  map_goup_box <- box(title="Mapa de los barrios de Medellin agrupados",
+  map_goup_box <- box(title="Mapa con agrupamiento de los barrios de Medellin",
                       status = "success", solidHeader = TRUE, width = 12,
                         fluidRow(
                           column(12,offset = 0,

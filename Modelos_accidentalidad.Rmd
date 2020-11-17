@@ -2,7 +2,9 @@
 title: "Accidentalidad en Medellín"
 author: "Valentina Serrato Henao"
 date: "3/11/2020"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -17,6 +19,9 @@ load(file.choose())
 ```{r}
 #librerias necesarias
 require(mixlm)
+library(randomForest)
+library(tree)
+library(MASS)
 ```
 
 
@@ -27,12 +32,14 @@ train<-accidentalidad[-which(accidentalidad$PERIODO=="2018"),]
 test<-accidentalidad[which(accidentalidad$PERIODO=="2018"),]
 ```
 
-Se plantea un modelo de regresión  lineal múltiple que permita predecir el *número de accidentes* usando como predictoras el dia, el mes, el nombre del día, la comúna, el riesgo de accidentalidad del barrio, y un conjunto de variables dummy que determina si es o no un día importante.
+### Arbol de regresión 
+Se plantea un modelo de arbol de regresión que permita predecir el *número de accidentes* usando como predictoras el dia, el mes, el nombre del día, la comúna, el riesgo de accidentalidad del barrio, y un conjunto de variables dummy que determina si es o no un día importante.
 ```{r}
-#Modelo de regresión lineal multiple para el número de accidentes
+library(rpart)
+#Modelo de arbol de regresion para el número de accidentes
 NumAccidentes_test<-test$`Numero de accidentes`
-modelo1<-lm(`Numero de accidentes`~MES+DIA+DIA_NOMBRE+COMUNA+puente_festivo+puente_reyes+semana_santa+feria_flores+puente_semana_santa+festivo_entre_semana+no_festivo_importante+Riesgo, data=train)
-a1<-predict(modelo1, test)
+modelo1 <- rpart(`Numero de accidentes`~MES+DIA+DIA_NOMBRE+COMUNA+puente_festivo+puente_reyes+semana_santa+feria_flores+puente_semana_santa+festivo_entre_semana+no_festivo_importante+Riesgo, data=train, method = 'anova')
+a1 <- predict(modelo1, test)
 
 #MSE del conjunto de entrenamiento
 msetrain<-mean((train$`Numero de accidentes`- predict(modelo1))^2)
@@ -46,37 +53,38 @@ msetest
 msetrain
 variacion_mse
 
+cat("R Cuadrado \n")
+R2 = cor(NumAccidentes_test, a1)^2
+R2
+cat("R Cuadrado ajustado \n")
+1 - ((1 - R2) * (nrow(accidentalidad) - 1) / (nrow(accidentalidad) - ncol(accidentalidad) - 1))
+
 summary(modelo1)
 ```
 
-Podemos ver que la variación de los MSE de prueba y entrenamiento es del 15%, también se ve que tenemos un $R^2=0.4114$ y $R^2_{adj}=0.4108$, por lo tanto el modelo sí explica en un 41% la variabilidad del número de accidentes.
+Podemos ver que la variación de los MSE de prueba y entrenamiento es del 2%, también se ve que tenemos un $R^2=0.6667$ y $R^2_{adj}=0.6666$, por lo tanto el modelo sí explica en un 66.67% la variabilidad del número de accidentes.
 
 Se utilizará el método forward para depurar un poco el modelo y encontrar uno más parsimonioso.
 
 ```{r}
-forward(modelo1)
+library(rpart.plot)
+rpart.plot(modelo1)
 ```
-
-
 Se ajusta un modelo de regresión lineal múltiple para el número de *accidentes con solo daños*, usando como uno de los predictores el número de accidentes que resulta del modelo anterior, también el dia, el mes, el nombre del día, la comúna, el riesgo de accidentalidad del barrio, y un conjunto de variables dummy que determina si es o no un día importante.
 ```{r}
 #Modelo de regresión lineal multiple para el número de accidentes con solo daños
 NumAccidentesdaños_test<-test$`Accidente con solo daños`
 modelo2<-lm(`Accidente con solo daños`~MES+DIA+DIA_NOMBRE+COMUNA+puente_festivo+puente_reyes+semana_santa+feria_flores+puente_semana_santa+festivo_entre_semana+no_festivo_importante+Riesgo+`Numero de accidentes`, data=train)
 a2<-predict(modelo2, test)
-
 #MSE del conjunto de entrenamiento
 msetrain2<-mean((train$`Accidente con solo daños`- predict(modelo2))^2)
-
 #MSE del conjunto de prueba
 msetest2<- mean((NumAccidentesdaños_test - a2)^2)
-
 #variacion de los MSE
 variacion_mse2<-(msetest2/msetrain2)-1
 msetest2
 msetrain2
 variacion_mse2
-
 summary(modelo2)
 ```
 Podemos ver que la variación de los MSE de prueba y entrenamiento es del 2% un valor bajo, también se ve que tenemos un $R^2=0.8354$ y $R^2_{adj}=0.8352$, al ser valores casi iguales entonces se puede concluir que el modelo sí explica en un 84% la variabilidad del número de accidentes con solo daños.
@@ -97,19 +105,15 @@ Se ajusta un modelo de regresión lineal múltiple para el número de *accidente
 NumAccidentesheridos_test<-test$`Accidentes con Heridos`
 modelo3<-lm(`Accidentes con Heridos`~MES+DIA+DIA_NOMBRE+COMUNA+puente_festivo+puente_reyes+semana_santa+feria_flores+puente_semana_santa+festivo_entre_semana+no_festivo_importante+Riesgo+`Numero de accidentes`, data=train)
 a3<-predict(modelo3, test)
-
 #MSE del conjunto de entrenamiento
 msetrain3<-mean((train$`Accidentes con Heridos`- predict(modelo3))^2)
-
 #MSE del conjunto de prueba
 msetest3<- mean((NumAccidentesheridos_test - a3)^2)
-
 #variacion de los MSE
 variacion_mse3<-(msetrain3/msetest3)-1
 msetest3
 msetrain3
 variacion_mse3
-
 summary(modelo3)
 ```
 Podemos ver que la variación de los MSE de prueba y entrenamiento es del 2% un valor bajo, también se ve que tenemos un $R^2=0.7803$ y $R^2_{adj}=0.78$, al ser valores casi iguales entonces se puede concluir que el modelo sí explica en un 78% la variabilidad del número de accidentes con heridos.
@@ -128,26 +132,49 @@ Se ajusta un modelo de regresión lineal múltiple para el número de *accidente
 NumAccidentesmuertos_test<-test$`Accidente de muertos`
 modelo4<-lm(`Accidente de muertos`~MES+DIA+DIA_NOMBRE+COMUNA+puente_festivo+puente_reyes+semana_santa+feria_flores+puente_semana_santa+festivo_entre_semana+no_festivo_importante+Riesgo+`Numero de accidentes`, data=train)
 a4<-predict(modelo4, test)
-
 #MSE del conjunto de entrenamiento
 msetrain4<-mean((train$`Accidente de muertos`- predict(modelo4))^2)
-
 #MSE del conjunto de prueba
 msetest4<- mean((NumAccidentesmuertos_test - a4)^2)
-
 #variacion de los MSE
 variacion_mse4<-(msetrain4/msetest4)-1
 msetest4
 msetrain4
 variacion_mse4
-
 summary(modelo4)
 ```
 
 Podemos ver que la variación de los MSE de prueba y entrenamiento es del 40%, también se ve que tenemos un $R^2=0.03$, esto indica que el modelo no es adecuado por lo cual se buscara mejorar la predicción con el uso de otros métodos
 
+# Se plantea un Modelo de regresion lineal multiple para el número de accidentes con heridos o muertos
+
+```{r}
+## Creando la variable Accidentes_heridos_o_muertos
+require(dplyr)
+accidentalidad<-accidentalidad %>%
+  select(puente_festivo,puente_reyes,semana_santa,feria_flores,puente_semana_santa,festivo_entre_semana,no_festivo_importante,`Accidente de muertos`,MES,DIA,DIA_NOMBRE,COMUNA,Riesgo,`Numero de accidentes`,PERIODO,`Accidentes con Heridos`) %>%
+  mutate(accidentalidad,accidentes_heridos_o_muertos=`Accidente de muertos`+`Accidentes con Heridos`)
+```
+
+```{r}
+## Seleccion del conjunto de entrenamiento y el conjunto de prueba
+train<-accidentalidad[-which(accidentalidad$PERIODO=="2018"),]
+test<-accidentalidad[which(accidentalidad$PERIODO=="2018"),]
+```
 
 
-
-
-
+```{r}
+accidentes_heridos_o_muertos_test<- test$accidentes_heridos_o_muertos
+modelo5<-lm(accidentes_heridos_o_muertos~MES+DIA+DIA_NOMBRE+COMUNA+puente_festivo+puente_reyes+semana_santa+feria_flores+puente_semana_santa+festivo_entre_semana+no_festivo_importante+Riesgo+`Numero de accidentes`, data=train)
+#MSE del conjunto de entrenamiento
+msetrain5<-mean((train$accidentes_heridos_o_muertos- predict(modelo5))^2)
+#MSE del conjunto de prueba
+a5<-predict(modelo5, test)
+msetest5<- mean((accidentes_heridos_o_muertos_test - a5)^2)
+#variacion de los MSE
+variacion_mse5<-(msetest5/msetrain5)-1
+msetest5
+msetrain5
+variacion_mse5
+summary(modelo5)
+```

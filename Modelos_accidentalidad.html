@@ -434,13 +434,13 @@ R2</code></pre>
 ##   n= 44286 
 ## 
 ##           CP nsplit rel error    xerror        xstd
-## 1 0.26796595      0 1.0000000 1.0000179 0.020809469
-## 2 0.05749259      2 0.4640681 0.4642072 0.005973921
-## 3 0.04482908      3 0.4065755 0.4067351 0.005613436
-## 4 0.04246632      4 0.3617464 0.3587480 0.005386945
-## 5 0.01138711      5 0.3192801 0.3194373 0.004549174
-## 6 0.01120086      6 0.3078930 0.3117257 0.004372320
-## 7 0.01000000      7 0.2966921 0.3008732 0.004152177
+## 1 0.26796595      0 1.0000000 1.0000619 0.020810459
+## 2 0.05749259      2 0.4640681 0.4643426 0.005980104
+## 3 0.04482908      3 0.4065755 0.4068613 0.005619991
+## 4 0.04246632      4 0.3617464 0.3588907 0.005388558
+## 5 0.01138711      5 0.3192801 0.3195512 0.004554730
+## 6 0.01120086      6 0.3078930 0.3113487 0.004504187
+## 7 0.01000000      7 0.2966921 0.3029396 0.004261069
 ## 
 ## Variable importance
 ##         Riesgo         COMUNA     DIA_NOMBRE puente_festivo 
@@ -645,7 +645,7 @@ msetest2</code></pre>
 ##     puente_festivo + puente_reyes + semana_santa + feria_flores + 
 ##     puente_semana_santa + festivo_entre_semana + no_festivo_importante + 
 ##     Riesgo + `Numero de accidentes`
-## &lt;environment: 0x000000004ec219d8&gt;</code></pre>
+## &lt;environment: 0x000000004ff0e308&gt;</code></pre>
 <pre><code>## Warning: Using formula(x) is deprecated when x is a character vector of length &gt; 1.
 ##   Consider formula(paste(x, collapse = &quot; &quot;)) instead.
 
@@ -801,7 +801,7 @@ msetest3</code></pre>
 ##     puente_festivo + puente_reyes + semana_santa + feria_flores + 
 ##     puente_semana_santa + festivo_entre_semana + no_festivo_importante + 
 ##     Riesgo + `Numero de accidentes`
-## &lt;environment: 0x000000004ebecd18&gt;</code></pre>
+## &lt;environment: 0x000000004fed7728&gt;</code></pre>
 <pre><code>## Warning: Using formula(x) is deprecated when x is a character vector of length &gt; 1.
 ##   Consider formula(paste(x, collapse = &quot; &quot;)) instead.
 
@@ -975,6 +975,93 @@ require(dplyr)</code></pre>
 <pre class="r"><code>accidentalidad&lt;-accidentalidad %&gt;%
   select(puente_festivo,puente_reyes,semana_santa,feria_flores,puente_semana_santa,festivo_entre_semana,no_festivo_importante,`Accidente de muertos`,MES,DIA,DIA_NOMBRE,COMUNA,Riesgo,`Numero de accidentes`,PERIODO,`Accidentes con Heridos`) %&gt;%
   mutate(accidentalidad,accidentes_heridos_o_muertos=`Accidente de muertos`+`Accidentes con Heridos`)</code></pre>
+<pre class="r"><code>## Seleccion del conjunto de entrenamiento y el conjunto de prueba
+train&lt;-accidentalidad[-which(accidentalidad$PERIODO==&quot;2018&quot;),]
+test&lt;-accidentalidad[which(accidentalidad$PERIODO==&quot;2018&quot;),]</code></pre>
+<pre class="r"><code>accidentes_heridos_o_muertos_test&lt;- test$accidentes_heridos_o_muertos
+modelo5&lt;-lm(accidentes_heridos_o_muertos~MES+DIA+DIA_NOMBRE+COMUNA+puente_festivo+puente_reyes+semana_santa+feria_flores+puente_semana_santa+festivo_entre_semana+no_festivo_importante+Riesgo+`Numero de accidentes`, data=train)
+
+#MSE del conjunto de entrenamiento
+msetrain5&lt;-mean((train$accidentes_heridos_o_muertos- predict(modelo5))^2)
+
+
+#MSE del conjunto de prueba
+a5&lt;-predict(modelo5, test)
+msetest5&lt;- mean((accidentes_heridos_o_muertos_test - a5)^2)
+
+#variacion de los MSE
+variacion_mse5&lt;-(msetest5/msetrain5)-1
+msetest5</code></pre>
+<pre><code>## [1] 1.014397</code></pre>
+<pre class="r"><code>msetrain5</code></pre>
+<pre><code>## [1] 1.036596</code></pre>
+<pre class="r"><code>variacion_mse5</code></pre>
+<pre><code>## [1] -0.02141495</code></pre>
+<pre class="r"><code>summary(modelo5)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = accidentes_heridos_o_muertos ~ MES + DIA + DIA_NOMBRE + 
+##     COMUNA + puente_festivo + puente_reyes + semana_santa + feria_flores + 
+##     puente_semana_santa + festivo_entre_semana + no_festivo_importante + 
+##     Riesgo + `Numero de accidentes`, data = train)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -9.6401 -0.6017  0.0228  0.5539  7.2981 
+## 
+## Coefficients:
+##                          Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)             0.4291843  0.0685458   6.261 3.85e-10 ***
+## MES                    -0.0068145  0.0014445  -4.718 2.39e-06 ***
+## DIA                    -0.0000341  0.0005579  -0.061 0.951255    
+## DIA_NOMBRE1             0.1510402  0.0124921  12.091  &lt; 2e-16 ***
+## DIA_NOMBRE2             0.0121809  0.0120160   1.014 0.310722    
+## DIA_NOMBRE3             0.0014694  0.0119842   0.123 0.902414    
+## DIA_NOMBRE4            -0.0558886  0.0119366  -4.682 2.85e-06 ***
+## DIA_NOMBRE5            -0.0118315  0.0119346  -0.991 0.321516    
+## DIA_NOMBRE6            -0.0135517  0.0120130  -1.128 0.259290    
+## COMUNA1                -0.2995826  0.2166520  -1.383 0.166738    
+## COMUNA2                 0.2885437  0.5662627   0.510 0.610364    
+## COMUNA3                 0.2774553  0.0407198   6.814 9.63e-12 ***
+## COMUNA4                 0.0127332  0.2641004   0.048 0.961546    
+## COMUNA5                -0.1287637  0.0393712  -3.271 0.001074 ** 
+## COMUNA6                 0.0331051  0.0408263   0.811 0.417441    
+## COMUNA7                 0.1586241  0.0396060   4.005 6.21e-05 ***
+## COMUNA8                 0.0720027  0.0642390   1.121 0.262355    
+## COMUNA9                -0.1449582  0.0503669  -2.878 0.004003 ** 
+## COMUNA10               -0.0077416  0.0458307  -0.169 0.865862    
+## COMUNA11               -0.4103700  0.3282882  -1.250 0.211295    
+## COMUNA12                0.0124876  0.0543005   0.230 0.818114    
+## COMUNA13                0.4941556  0.0436854  11.312  &lt; 2e-16 ***
+## COMUNA14               -0.7212569  0.0394452 -18.285  &lt; 2e-16 ***
+## COMUNA15               -0.1453384  0.0403405  -3.603 0.000315 ***
+## COMUNA16               -0.1684136  0.1025856  -1.642 0.100662    
+## COMUNA17               -0.1436803  0.0410604  -3.499 0.000467 ***
+## COMUNA18               -0.5280426  0.0416784 -12.669  &lt; 2e-16 ***
+## COMUNA19               -0.3403843  0.0404641  -8.412  &lt; 2e-16 ***
+## COMUNA20                0.2845198  0.0414588   6.863 6.85e-12 ***
+## COMUNA21                0.3001440  0.0461493   6.504 7.92e-11 ***
+## COMUNA22                0.3886988  0.0405671   9.582  &lt; 2e-16 ***
+## COMUNA23                0.1611885  0.0430843   3.741 0.000183 ***
+## COMUNA24                0.1914753  0.0464556   4.122 3.77e-05 ***
+## COMUNA25                0.2489769  0.4907230   0.507 0.611899    
+## puente_festivo1        -0.0339462  0.0092288  -3.678 0.000235 ***
+## puente_reyes1           0.0224406  0.0303867   0.738 0.460215    
+## semana_santa1          -0.0069777  0.0211452  -0.330 0.741408    
+## feria_flores1          -0.0014472  0.0147683  -0.098 0.921939    
+## puente_semana_santa1    0.0402875  0.0341871   1.178 0.238627    
+## festivo_entre_semana1  -0.1214204  0.0324081  -3.747 0.000179 ***
+## no_festivo_importante1  0.0336913  0.0234840   1.435 0.151395    
+## Riesgo1                -0.0435822  0.0105259  -4.140 3.47e-05 ***
+## Riesgo2                -0.0627567  0.0086473  -7.257 4.01e-13 ***
+## `Numero de accidentes`  0.4791488  0.0015114 317.020  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## s: 1.019 on 44242 degrees of freedom
+## Multiple R-squared: 0.7834,
+## Adjusted R-squared: 0.7832 
+## F-statistic:  3722 on 43 and 44242 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre class="r"><code>## Seleccion del conjunto de entrenamiento y el conjunto de prueba
 train&lt;-accidentalidad[-which(accidentalidad$PERIODO==&quot;2018&quot;),]
 test&lt;-accidentalidad[which(accidentalidad$PERIODO==&quot;2018&quot;),]</code></pre>

@@ -82,13 +82,13 @@ sidebar <- dashboardSidebar(
     )
   
 #box map group
-  map_goup_box <- box(title="Mapa de los barrios de Medellin",
+  map_goup_box <- box(title="Mapa de los barrios de Medellin agrupados",
                       status = "success", solidHeader = TRUE, width = 12,
                         fluidRow(
                           column(12,offset = 0,
                                  div(style="width: 95%;margin-left: auto; margin-right: auto;",
                           leafletOutput("map_group",height = "75vh"),
-                          verbatimTextOutput("click_info"),
+                          #verbatimTextOutput("click_info"),
                                  )
                           )
                         )

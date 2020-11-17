@@ -8,7 +8,11 @@ library(leaflet.extras)
 
 # Server ----
 # load data
-barrios <- paste0(readLines("data/Barrio_Vereda.json",encoding="UTF-8",warn = FALSE), collapse = "")
+#barrios <- paste0(readLines("data/barrios_riesgo.json",encoding="UTF-8",warn = FALSE), collapse = "")
+altos <- paste0(readLines("data/altos.json",encoding="UTF-8",warn = FALSE), collapse = "")
+bajos <- paste0(readLines("data/bajos.json",encoding="UTF-8",warn = FALSE), collapse = "")
+medios <- paste0(readLines("data/medios.json",encoding="UTF-8",warn = FALSE), collapse = "")
+desconocidos <- paste0(readLines("data/desconocidos.json",encoding="UTF-8",warn = FALSE), collapse = "")
 data_accidentes <- read.csv(file = "data/incidentes_medellin.csv", fileEncoding = "utf-8");
 resumen_accidentes <- read.csv(file = "data/Resumen-accidentalidad.csv", sep = ";")
 
@@ -102,43 +106,100 @@ function(input, output, session) {
   
   output$map_group <- renderLeaflet({
     pal <- colorNumeric("viridis", NULL)
-    
-    
-    
-    
     leaflet() %>%
       setView(-75.595178, 6.26, 12) %>%
       addTiles() %>%
-      addGeoJSONChoropleth(barrios,
-                           #valueProperty = "SHAPEAREA",
-                           valueProperty = JS(
-                             'function(feature){
-                                         var props = feature.properties;
-                                         return Math.log(props.SHAPEAREA);
-                                      }'
-                           ),
-                           labelProperty = "NOMBRE",
-                           scale = c("YELLOW", "red"),
-                           popupProperty = propstoHTMLTable(
-                             props = c("NOMBRE", "CODIGO", "NOMBRE_COM"),
-                             table.attrs = list(class = "table table-striped table-bordered"),
-                             drop.na = TRUE
-                           ),
-                           #stroke
-                           color = "#ffffff", weight = 1, fillOpacity = 0.3,
-                           highlightOptions = highlightOptions(
-                             weight = 2, color = "#000000",
-                             fillOpacity = 0.5, opacity = 1,
-                             bringToFront = TRUE, sendToBack = TRUE),
-                           pathOptions = pathOptions(
-                             showMeasurements = TRUE),
-                           legendOptions = legendOptions(
-                             title = "log(area (m2))",
-                             numberFormatOptions = list(
-                               style = "decimal",
-                               maximumFractionDigits = 0
-                             )
-                           ),
+      addGeoJSONv2(
+        altos,
+        labelProperty = "NOMBRE",
+        popupProperty = propstoHTMLTable(
+          props = c("NOMBRE", "NOMBRE_COM", "RIESGO"),
+          table.attrs = list(class = "table table-striped table-bordered"),
+          drop.na = TRUE
+        ),
+        color = "#ffffff",
+        weight = 1,
+        fillOpacity = 0.3,
+        fillColor = "red",
+        highlightOptions = highlightOptions(
+          weight = 2,
+          color = "#000000",
+          fillOpacity = 0.5,
+          opacity = 1,
+          bringToFront = TRUE,
+          sendToBack = TRUE
+        ),
+        pathOptions = pathOptions(showMeasurements = TRUE),
+        
+      ) %>%
+      addGeoJSONv2(
+        medios,
+        labelProperty = "NOMBRE",
+        popupProperty = propstoHTMLTable(
+          props = c("NOMBRE", "NOMBRE_COM", "RIESGO"),
+          table.attrs = list(class = "table table-striped table-bordered"),
+          drop.na = TRUE
+        ),
+        color = "#ffffff",
+        weight = 1,
+        fillOpacity = 0.5,
+        fillColor = "orange",
+        highlightOptions = highlightOptions(
+          weight = 2,
+          color = "#000000",
+          fillOpacity = 0.5,
+          opacity = 1,
+          bringToFront = TRUE,
+          sendToBack = TRUE
+        ),
+        pathOptions = pathOptions(showMeasurements = TRUE),
+        
+      ) %>%
+      addGeoJSONv2(
+        bajos,
+        labelProperty = "NOMBRE",
+        popupProperty = propstoHTMLTable(
+          props = c("NOMBRE", "NOMBRE_COM", "RIESGO"),
+          table.attrs = list(class = "table table-striped table-bordered"),
+          drop.na = TRUE
+        ),
+        color = "#ffffff",
+        weight = 1,
+        fillOpacity = 0.2,
+        fillColor = "yellow",
+        highlightOptions = highlightOptions(
+          weight = 2,
+          color = "#000000",
+          fillOpacity = 0.5,
+          opacity = 1,
+          bringToFront = TRUE,
+          sendToBack = TRUE
+        ),
+        pathOptions = pathOptions(showMeasurements = TRUE),
+        
+      ) %>%
+      addGeoJSONv2(
+        desconocidos,
+        labelProperty = "NOMBRE",
+        popupProperty = propstoHTMLTable(
+          props = c("NOMBRE", "NOMBRE_COM", "RIESGO"),
+          table.attrs = list(class = "table table-striped table-bordered"),
+          drop.na = TRUE
+        ),
+        color = "#ffffff",
+        weight = 1,
+        fillOpacity = 0.3,
+        fillColor = "gray",
+        highlightOptions = highlightOptions(
+          weight = 2,
+          color = "#000000",
+          fillOpacity = 0.5,
+          opacity = 1,
+          bringToFront = TRUE,
+          sendToBack = TRUE
+        ),
+        pathOptions = pathOptions(showMeasurements = TRUE),
+        
       )
   })
   output$click_info<- renderText({

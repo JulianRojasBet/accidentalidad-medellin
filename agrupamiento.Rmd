@@ -1,9 +1,6 @@
 ---
 title: "Agrupamiento"
-output:
-  pdf_document: default
-  html_document:
-    df_print: paged
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -118,8 +115,9 @@ fig <- fig %>% layout(scene = list(xaxis = list(title = '# Accidentes'),
                      zaxis = list(title = '# Atropellos')))
 fig
 ```
+
 ```{r}
-write.csv(barrios,"app/data/barrios_riesgo.csv", row.names = FALSE)
+write.csv(barrios,"app/data/barrios_riesgo.csv", row.names = FALSE, fileEncoding = "UTF-8")
 ```
 
 ```{r}

@@ -132,7 +132,6 @@ function(input, output, session) {
   
   #function(input, output, session) {
   
-<<<<<<< HEAD
   output$secondSelection <- renderUI({
     selectInput("SelectedBarrio", h4("Seleccione el barrio"), choices = unique(resumen_accidentes %>% 
                                                                                   filter(COMUNA == input$SelectedComuna) %>%

@@ -54,13 +54,13 @@ function(input, output, session) {
     dateFinish <- format(as.Date(input$dates[2] + 1, origin = "1970-01-01"), "%Y-%m-%d")
     data <- resumen_accidentes %>% 
       filter(FECHA >= dateStart & FECHA <= dateFinish) %>%
-      dplyr::select("PERIODO", "MES", "DIA", "COMUNA", "BARRIO", "Riesgo", "Es.fecha.importante",
+      dplyr::select("PERIODO", "MES", "DIA", "COMUNA", "BARRIO", "Riesgo",
              "Suma.de.Numero.de.accidentes", "Suma.de.Numero.de.Heridos", "Suma.de.Número.de.solo.daños",
              "Suma.de.Número.de.muertos")
     
     sketch <- htmltools::withTags(
       table(
-        tableHeader(c("Año", "Mes", "Día", "Comuna", "Barrio", "Riesgo", "Fecha importante", 
+        tableHeader(c("Año", "Mes", "Día", "Comuna", "Barrio", "Riesgo",  
                       "Número accidentes",  "Accidentes con heridos", "Accidentes con solo daños", 
                       "Accidentes con muertos")),
         tableFooter(c("Subtotal","","","","","","",0,0,0,0))
@@ -132,6 +132,7 @@ function(input, output, session) {
   
   #function(input, output, session) {
   
+<<<<<<< HEAD
   output$secondSelection <- renderUI({
     selectInput("SelectedBarrio", h4("Seleccione el barrio"), choices = unique(resumen_accidentes %>% 
                                                                                   filter(COMUNA == input$SelectedComuna) %>%
@@ -306,6 +307,7 @@ function(input, output, session) {
 
   # Map
   
+
   output$map_group <- renderLeaflet({
     pal <- colorNumeric("viridis", NULL)
     leaflet() %>%

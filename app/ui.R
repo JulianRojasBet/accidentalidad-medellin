@@ -13,7 +13,7 @@ dropdownMenu <-
     type = "messages", headerText = NULL,
      messageItem(
        from = "Github",
-       message = "Repositorio de la aplicacion",
+       message = "Repositorio de la aplicación",
        icon = icon("code-branch"),
        href = "https://github.com/JulianRojasBet/accidentalidad-medellin"
      ),
@@ -25,7 +25,7 @@ dropdownMenu <-
      ),
      messageItem(
        from = "Equipo de desarrollo",
-       message = "La nueva version esta lista",
+       message = "La nueva versión esta lista",
        icon = icon("feather-alt"),
        time = "2020-1-01"
      )
@@ -34,15 +34,15 @@ dropdownMenu <-
 
 # header ----
 header <- 
-  dashboardHeader(title = "Accidentalidad Medellin", titleWidth = 245,
+  dashboardHeader(title = "Accidentalidad Medellín", titleWidth = 245,
                   dropdownMenu)
 
 # sidebar ----
 sidebar <- dashboardSidebar(
   width=245,
   sidebarMenu(
-    menuItem("Visualizacion", tabName = "visualization", icon = icon("database")),
-    menuItem("Prediccion", tabName = "prediction", icon = icon("brain")),
+    menuItem("Visualización", tabName = "visualization", icon = icon("database")),
+    menuItem("Predicción", tabName = "prediction", icon = icon("brain")),
     menuItem("Agrupamiento", tabName = "grouping", icon = icon("globe-americas"), 
              badgeLabel = "nuevo", badgeColor = "green")
   )
@@ -50,7 +50,7 @@ sidebar <- dashboardSidebar(
 
 # box visualization ----
   visualization_box <- 
-    box(title = "Visualizacion de datos historicos",
+    box(title = "Visualización de datos históricos",
      status = "success", solidHeader = TRUE, width = 12,
      fluidRow(
        column(12, offset = 0,
@@ -161,7 +161,7 @@ sidebar <- dashboardSidebar(
     )
   
 #box map group
-  map_goup_box <- box(title="Mapa con agrupamiento de los barrios de Medellin",
+  map_goup_box <- box(title="Mapa con agrupamiento de los barrios de Medellín",
                       status = "success", solidHeader = TRUE, width = 12,
                         fluidRow(
                           column(12,offset = 0,

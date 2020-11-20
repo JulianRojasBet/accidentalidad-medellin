@@ -18,16 +18,10 @@ dropdownMenu <-
        href = "https://github.com/JulianRojasBet/accidentalidad-medellin"
      ),
      messageItem(
-       from = "Nuevo usuario",
+       from = "Youtube",
        message = "Mira el video promocional",
        icon = icon("video"),
-       time = "13:45"
-     ),
-     messageItem(
-       from = "Equipo de desarrollo",
-       message = "La nueva versión esta lista",
-       icon = icon("feather-alt"),
-       time = "2020-1-01"
+       href = "https://youtu.be/phGSQMe0-fE"
      )
   )
 

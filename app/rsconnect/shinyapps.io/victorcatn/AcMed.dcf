@@ -5,9 +5,9 @@ account: victorcatn
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3269844
-bundleId: 3882953
+bundleId: 3883303
 url: https://victorcatn.shinyapps.io/AcMed/
-when: 1605836243.11128
+when: 1605844548.49433
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: geojson

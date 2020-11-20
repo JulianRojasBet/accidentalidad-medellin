@@ -180,6 +180,21 @@ function(input, output, session) {
         MES <- as.integer(MES)
         DIA <- as.integer(DIA)
         DIA_NOMBRE <- toupper(weekdays(as.Date(all_dates[j])))
+        if(DIA_NOMBRE == 'MONDAY'){
+          DIA_NOMBRE <- "LUNES"
+        } else if(DIA_NOMBRE == 'TUESDAY'){
+          DIA_NOMBRE <- "MARTES"
+        } else if(DIA_NOMBRE == 'WEDNESDAY'){
+          DIA_NOMBRE <- "MIÉRCOLES"
+        } else if(DIA_NOMBRE == "THURSDAY"){
+          DIA_NOMBRE <- "JUEVES"
+        } else if(DIA_NOMBRE == 'FRIDAY'){
+          DIA_NOMBRE <- "VIERNES"
+        } else if(DIA_NOMBRE == 'SATURDAY'){
+          DIA_NOMBRE <- "SÁBADO"
+        } else if(DIA_NOMBRE == 'SUNDAY'){
+          DIA_NOMBRE <- "DOMINGO"
+        }
         if (j==1) {
           df_model1 <- data.frame(MES, DIA, DIA_NOMBRE, COMUNA,puente_festivo, puente_reyes,semana_santa, feria_flores, puente_semana_santa, festivo_entre_semana, no_festivo_importante,Riesgo)
         } else {

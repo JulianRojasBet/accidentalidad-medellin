@@ -43,8 +43,7 @@ sidebar <- dashboardSidebar(
   sidebarMenu(
     menuItem("Visualizacion", tabName = "visualization", icon = icon("database")),
     menuItem("Prediccion", tabName = "prediction", icon = icon("brain")),
-    menuItem("Agrupamiento", tabName = "grouping", icon = icon("globe-americas"), 
-             badgeLabel = "nuevo", badgeColor = "green")
+    menuItem("Agrupamiento", tabName = "grouping", icon = icon("globe-americas"))
   )
 )
 

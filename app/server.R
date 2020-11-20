@@ -8,6 +8,7 @@ library(randomForest)
 library(tree)
 library(MASS)
 library(rpart)
+library(shinydashboard)
 #library(knitr)
 
 #knit("data/accidentalidad.Rmd")
@@ -25,7 +26,7 @@ bajos <- paste0(readLines("data/bajos.json",encoding="UTF-8",warn = FALSE), coll
 medios <- paste0(readLines("data/medios.json",encoding="UTF-8",warn = FALSE), collapse = "")
 desconocidos <- paste0(readLines("data/desconocidos.json",encoding="UTF-8",warn = FALSE), collapse = "")
 data_accidentes <- read.csv(file = "data/incidentes_medellin.csv", fileEncoding = "utf-8");
-resumen_accidentes <- read.csv(file = "data/Resumen-accidentalidad.csv", sep = ";")
+resumen_accidentes <- read.csv(file = "data/Resumen-accidentalidad.csv", sep = ";", fileEncoding = "utf-8")
 meses <- read.csv(file = "data/meses.csv", sep = ";")
 fechas_importantes <- read.csv(file = "data/fechas_importantes_2020.csv", sep=";")
 

@@ -276,6 +276,21 @@ function(input, output, session) {
       MES <- as.integer(MES)
       DIA <- as.integer(DIA)
       DIA_NOMBRE<-  toupper(weekdays(as.Date(input$dateDay)))
+      if(DIA_NOMBRE == 'MONDAY'){
+        DIA_NOMBRE <- "LUNES"
+      } else if(DIA_NOMBRE == 'TUESDAY'){
+        DIA_NOMBRE <- "MARTES"
+      } else if(DIA_NOMBRE == 'WEDNESDAY'){
+        DIA_NOMBRE <- "MIÉRCOLES"
+      } else if(DIA_NOMBRE == "THURSDAY"){
+        DIA_NOMBRE <- "JUEVES"
+      } else if(DIA_NOMBRE == 'FRIDAY'){
+        DIA_NOMBRE <- "VIERNES"
+      } else if(DIA_NOMBRE == 'SATURDAY'){
+        DIA_NOMBRE <- "SÁBADO"
+      } else if(DIA_NOMBRE == 'SUNDAY'){
+        DIA_NOMBRE <- "DOMINGO"
+      }
       fecha <- fechas_importantes %>% 
         filter(FECHA==input$dateDay) %>%
         dplyr::select("puente_festivo", "puente_reyes", "semana_santa", "puente_semana_santa", "feria_flores", "festivo_entre_semana", "no_festivo_importante")

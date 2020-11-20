@@ -1,0 +1,13 @@
+name: AcMed
+title: AcMed
+username:
+account: victorcatn
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3269844
+bundleId: 3882817
+url: https://victorcatn.shinyapps.io/AcMed/
+when: 1605832836.15352
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: geojson

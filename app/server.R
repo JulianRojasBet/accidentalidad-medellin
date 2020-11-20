@@ -8,7 +8,7 @@ library(randomForest)
 library(tree)
 library(MASS)
 library(rpart)
-library(knitr)
+#library(knitr)
 
 #knit("data/accidentalidad.Rmd")
 
@@ -58,12 +58,13 @@ function(input, output, session) {
              "Suma.de.Numero.de.accidentes", "Suma.de.Numero.de.Heridos", "Suma.de.Número.de.solo.daños",
              "Suma.de.Número.de.muertos")
     
+    
     sketch <- htmltools::withTags(
       table(
         tableHeader(c("Año", "Mes", "Día", "Comuna", "Barrio", "Riesgo",  
                       "Número accidentes",  "Accidentes con heridos", "Accidentes con solo daños", 
                       "Accidentes con muertos")),
-        tableFooter(c("Subtotal","","","","","","",0,0,0,0))
+        tableFooter(c("Subtotal","","","","","",0,0,0,0))
       ))
     
     DT::datatable(
@@ -73,7 +74,6 @@ function(input, output, session) {
       filter = "top", options = list(
         deferRender = TRUE,
         searching = TRUE,
-        scrollX = TRUE,
         filter = list(position = "top", clear = FALSE),
         pageLength = 10,
         sDom  = '<"top">lrt<"bottom">ip',
@@ -84,6 +84,11 @@ function(input, output, session) {
         footerCallback = JS(
           "function( tfoot, data, start, end, display ) {",
           "var api = this.api(), data;",
+          "$( api.column(6).footer()).html(",
+          "api.column(6).data().reduce( function ( a, b ) {",
+          "return a + b;",
+          "} )",
+          ");",
           "$( api.column(7).footer()).html(",
           "api.column(7).data().reduce( function ( a, b ) {",
           "return a + b;",
@@ -96,11 +101,6 @@ function(input, output, session) {
           ");",
           "$( api.column(9).footer()).html(",
           "api.column(9).data().reduce( function ( a, b ) {",
-          "return a + b;",
-          "} )",
-          ");",
-          "$( api.column(10).footer()).html(",
-          "api.column(10).data().reduce( function ( a, b ) {",
           "return a + b;",
           "} )",
           ");",
